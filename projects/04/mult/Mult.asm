@@ -12,31 +12,31 @@
 // Put your code here.
   
 @2 
-M=0 //MAKE RAM[2]=0
+M=0     //MAKE RAM[2]=0
 
 @0
 D=M
 @END
-D;JEQ //IF RAM[0] IS ZERO GOTO END
+D;JEQ     //IF RAM[0] IS ZERO GOTO END
 
 @1
 D=M
 @END
-D;JEQ //IF RAM[1] IS ZERO GOTO END
+D;JEQ     //IF RAM[1] IS ZERO GOTO END
 
 (LOOP)
 @1 	
 D=M 	
 
 @2 	
-M=D+M // RAM[2]=RAM[2]+RAM[1]	
+M=D+M     // RAM[2]=RAM[2]+RAM[1]	
 
 @0 	
-M=M-1 //LOOP ON FIRST RAM
+M=M-1     //LOOP ON FIRST RAM
 
 D=M 	
 @LOOP 	
-D;JGT //IF RAM[0]>=0 GOTO LOOP     (STILL SUMMATE THE RAM[1])
+D;JGT     //IF RAM[0]>=0 GOTO LOOP (STILL SUMMATE THE RAM[1])
 
 
 (END)

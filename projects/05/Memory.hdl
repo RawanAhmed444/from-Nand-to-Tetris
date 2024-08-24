@@ -1,0 +1,61 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/Memory.hdl
+
+/**
+ * The complete address space of the Hack computer's memory,
+ * including RAM and memory-mapped I/O. 
+ * The chip facilitates read and write operations, as follows:
+ *     Read:  out(t) = Memory[address(t)](t)
+ *     Write: if load(t-1) then Memory[address(t-1)](t) = in(t-1)
+ * In words: the chip always outputs the value stored at the memory 
+ * location specified by address. If load==1, the in value is loaded 
+ * into the memory location specified by address. This value becomes 
+ * available through the out output from the next time step onward.
+ * Address space rules:
+ * Only the upper 16K+8K+1 words of the Memory chip are used. 
+ * Access to address>0x6000 is invalid. Access to any address in 
+ * the range 0x4000-0x5FFF results in accessing the screen memory 
+ * map. Access to address 0x6000 results in accessing the keyboard 
+ * memory map. The behavior in these addresses is described in the 
+ * Screen and Keyboard chip specifications given in the book.
+ */
+
+CHIP Memory {
+    IN in[16], load, address[15];
+    OUT out[16];
+
+    PARTS:
+    // Put your code here:
+	// Chooosing between Screen, Keyboard, or RAM
+	// if(address>=0 && address<=16383) select the RAM16K (Data)
+	// else select either the screen or the keyboard
+	// if(address==24576) select the the keyboard
+	//else select the screen	
+	DMux(in=true, sel=address[14], a=selData, b=selScreenOrKeyboard);	
+	DMux(in=selScreenOrKeyboard, sel=address[13], a=selScreen, b=selKeyboard);
+
+	// Data Memory
+	// Checking for laod and selectRAM both to be true
+	And(a=load, b=selData, out=loadData);		
+	RAM16K(in=in, load=loadData, address=address[0..13], out=outData);
+
+	// Screen Momory
+	// We have not built 8K RAM so we divide it to two 4KRAMs using DMux
+	DMux(in=selScreen, sel=address[12], a=selTopScreen, b=selBottomScreen);		
+	And(a=load, b=selTopScreen, out=loadTopScreen);
+	And(a=load, b=selBottomScreen, out=loadBottomScreen);
+	RAM4K(in=in, load=loadTopScreen, address=address[0..11], out=outTopScreen);
+	RAM4K(in=in, load=loadBottomScreen, address=address[0..11], out=outBottomScreen);
+	// Selecting which part of screen wll be loaded
+	Mux16(a=outTopScreen, b=outBottomScreen, sel=selBottomScreen, out=outScreen);
+		
+	// Keyboard Memory
+	And(a=load, b=selKeyboard, out=loadKeyboard);
+	Register(in=in, load=loadKeyboard, out=outKeyboard);
+
+	// Selecting RAM, Screen, or Keyboard
+	Mux16(a=outScreen, b=outKeyboard, sel=selKeyboard, out=outScreenOrKeyboard);
+	Mux16(a=outScreenOrKeyboard, b=outData, sel=selData, out=out);
+}
